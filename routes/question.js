@@ -75,9 +75,9 @@ router.get("/:id", checkAuthAdmin, async (req, res) => {
     }
 });
 
-router.post("/", checkAuthAdmin, async (req, res, next) => {
+router.post("/", /* checkAuthAdmin, */ async (req, res, next) => {
     let { email, company_name, contact_name, phone, answers } = req.body;
-    if (req.user.role == "ADMIN") {
+    /* if (req.user.role == "ADMIN") { */
         try {
             let newQuestion = new Users({
                 ...(phone && { phone: phone }),
@@ -99,9 +99,9 @@ router.post("/", checkAuthAdmin, async (req, res, next) => {
                 )
             );
         }
-    } else {
+    /* } else {
         res.status(500).json(error("you are not authorized.", res.statusCode));
-    }
+    } */
 });
 
 router.delete("/:id", checkAuthAdmin, async (req, res) => {
