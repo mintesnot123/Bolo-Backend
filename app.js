@@ -30,13 +30,14 @@ db.once("open", async function () {
   app.use(logger("dev"));
   app.use(express.json());
   app.use(cors());
+  app.use("/public", express.static(path.join(__dirname, "public")));
   //app.use("/static", express.static(__dirname + "./public/upload"));
   //app.use(express.static('public'));
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
   //app.use(express.static(path.join(__dirname, "public")));
 
-  app.get("/", express.static(path.join(__dirname, "./public")));
+  //app.get("/", express.static(path.join(__dirname, "./public")));
   app.use("/", indexRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/users", usersRouter);
