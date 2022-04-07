@@ -9,8 +9,8 @@ const fs = require("fs");
 const { checkAuthAdmin, getCurrentUser } = require("../middleware/auth");
 const { success, error, validation } = require("../helpers/responseApi");
 
-const DIR = "./public/uploads/developers";
-const DIR2 = "/public/uploads/developers/";
+const DIR = "./uploads";
+const DIR2 = "/uploads/";
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
