@@ -9,8 +9,11 @@ const fs = require("fs");
 const { checkAuthAdmin, getCurrentUser } = require("../middleware/auth");
 const { success, error, validation } = require("../helpers/responseApi");
 
-const DIR = "./public/uploads/developers";
-const DIR2 = "/public/uploads/developers/";
+/* const DIR = "./public/uploads/developers";
+const DIR2 = "/public/uploads/developers/"; */
+
+const DIR = "./uploads";
+const DIR2 = "/uploads/";
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -119,7 +122,7 @@ router.post(
             description,
             languages,
             experienceYear,
-            experienceLevel,
+            rate,
         } = req.body;
         if (req.user.role == "ADMIN") {
             try {
@@ -132,7 +135,7 @@ router.post(
                     description,
                     languages,
                     experienceYear,
-                    experienceLevel,
+                    rate,
                 });
 
                 const result = await newUser.save();
@@ -185,46 +188,59 @@ router.delete("/:id", checkAuthAdmin, async (req, res) => {
     }
 });
 
-/* router.patch(
+router.patch(
     "/:id",
-    checkAuthAdmin, async (req, res) => {
+    checkAuthAdmin,
+    upload.single("avatar"),
+    async (req, res) => {
         let id = req.params.id;
         let reqBody = req.body;
+        if (req.user.role == "ADMIN") {
+            let teamMemberUpdates = {
+                ...(reqBody.name && { name: reqBody.name }),
+                ...(reqBody.profession && { profession: reqBody.profession }),
+                ...(reqBody.rating && { company: reqBody.rating }),
+                ...(req.file &&
+                    req.file.filename && { avatar: DIR2 + req.file.filename }),
 
-        let teamMemberUpdates = {
-            ...(reqBody.name && { name: reqBody.name }),
-            ...(reqBody.title && { title: reqBody.title }),
-            ...(reqBody.company && { company: reqBody.company }),
-            imageUrl: url + "/public/uploads/teams/" + req.file.filename,
-            ...(reqBody.phone && { phone: reqBody.phone }),
-            ...(reqBody.email && { email: reqBody.email }),
-            ...(reqBody.facebook && { facebook: reqBody.facebook }),
-            ...(reqBody.tiwtter && { tiwtter: reqBody.tiwtter }),
-            ...(reqBody.instagram && { instagram: reqBody.instagram }),
-        };
+                ...(reqBody.numJob && { numJob: reqBody.numJob }),
+                ...(reqBody.description && {
+                    description: reqBody.description,
+                }),
+                ...(reqBody.languages && { languages: reqBody.languages }),
+                ...(reqBody.experienceYear && {
+                    experienceYear: reqBody.experienceYear,
+                }),
+                ...(reqBody.rate && { rate: reqBody.rate }),
+            };
 
-        try {
-            const teamMember = await Team.updateOne(
-                { _id: id },
-                teamMemberUpdates
-            );
-            res.status(200).json(
-                success("OK", { teamMember: teamMember }, res.statusCode)
-            );
-        } catch (err) {
             try {
-            await fs.unlinkSync(req.file.path);
-        } catch (err2) {
-            console.log("file delete error", err2);
-        }
+                const teamMember = await Users.updateOne(
+                    { _id: id },
+                    teamMemberUpdates
+                );
+                res.status(200).json(
+                    success("OK", { teamMember: teamMember }, res.statusCode)
+                );
+            } catch (err) {
+                try {
+                    await fs.unlinkSync(req.file.path);
+                } catch (err2) {
+                    console.log("file delete error", err2);
+                }
+                res.status(500).json(
+                    error(
+                        err.message ? err.message : "Something went wrong.",
+                        res.statusCode
+                    )
+                );
+            }
+        } else {
             res.status(500).json(
-                error(
-                    err.message ? err.message : "Something went wrong.",
-                    res.statusCode
-                )
+                error("you are not authorized.", res.statusCode)
             );
         }
     }
-); */
+);
 
 module.exports = router;
