@@ -39,11 +39,9 @@ let userSchema = new Schema({
         type: Number,
         required: true,
     },
-    experienceLevel: {
-        type: String,
+    rate: {
+        type: Number,
         required: true,
-        default: "Junior",
-        enum: ["Junior", "Experienced"],
     },
 });
 
