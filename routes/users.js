@@ -1,6 +1,7 @@
 let Users = require("../models/users").User;
 let express = require("express");
 let router = express.Router();
+var bcrypt = require("bcryptjs");
 
 const { checkAuthAdmin, getCurrentUser } = require("../middleware/auth");
 const { success, error, validation } = require("../helpers/responseApi");
@@ -76,7 +77,7 @@ router.get("/:id", checkAuthAdmin, async (req, res) => {
 });
 
 router.post("/", checkAuthAdmin, async (req, res, next) => {
-    let { email, password, name, phone } = req.body;
+    let { email, password, name, phone, role } = req.body;
     if (req.user.role == "ADMIN") {
         let user = await Users.find().where({ email: email });
 
@@ -88,7 +89,7 @@ router.post("/", checkAuthAdmin, async (req, res, next) => {
                     name: name,
                     email: email,
                     password: encryptedPass,
-                    role: "USER",
+                    role: role || "USER",
                 });
 
                 const result = await newUser.save();
@@ -135,26 +136,24 @@ router.delete("/:id", checkAuthAdmin, async (req, res) => {
     }
 });
 
-/* router.patch(
-    "/:id",
-    checkAuthAdmin, async (req, res) => {
-        let id = req.params.id;
-        let reqBody = req.body;
+router.patch("/:id", checkAuthAdmin, async (req, res) => {
+    let id = req.params.id;
+    let reqBody = req.body;
 
+    if (req.user.role == "ADMIN") {
+        let encryptedPass = await bcrypt.hash(reqBody.password, 12);
         let teamMemberUpdates = {
+            ...(encryptedPass && { password: encryptedPass }),
             ...(reqBody.name && { name: reqBody.name }),
-            ...(reqBody.title && { title: reqBody.title }),
-            ...(reqBody.company && { company: reqBody.company }),
-            imageUrl: url + "/public/uploads/teams/" + req.file.filename,
+
             ...(reqBody.phone && { phone: reqBody.phone }),
-            ...(reqBody.email && { email: reqBody.email }),
-            ...(reqBody.facebook && { facebook: reqBody.facebook }),
-            ...(reqBody.tiwtter && { tiwtter: reqBody.tiwtter }),
-            ...(reqBody.instagram && { instagram: reqBody.instagram }),
+            ...(reqBody.role && {
+                role: reqBody.role,
+            }),
         };
 
         try {
-            const teamMember = await Team.updateOne(
+            const teamMember = await Users.updateOne(
                 { _id: id },
                 teamMemberUpdates
             );
@@ -162,11 +161,6 @@ router.delete("/:id", checkAuthAdmin, async (req, res) => {
                 success("OK", { teamMember: teamMember }, res.statusCode)
             );
         } catch (err) {
-            try {
-            await fs.unlinkSync(req.file.path);
-        } catch (err2) {
-            console.log("file delete error", err2);
-        }
             res.status(500).json(
                 error(
                     err.message ? err.message : "Something went wrong.",
@@ -174,7 +168,9 @@ router.delete("/:id", checkAuthAdmin, async (req, res) => {
                 )
             );
         }
+    } else {
+        res.status(500).json(error("you are not authorized.", res.statusCode));
     }
-); */
+});
 
 module.exports = router;
