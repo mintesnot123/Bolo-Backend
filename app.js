@@ -7,7 +7,6 @@ let mongoose = require("mongoose");
 let multer = require("multer");
 let cors = require("cors");
 
-var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var authRouter = require("./routes/auth");
 var questionsRouter = require("./routes/question");
@@ -30,13 +29,10 @@ db.once("open", async function () {
     app.use(logger("dev"));
     app.use(express.json());
     app.use(cors());
-    app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-    //app.use(express.static('public'));
+    app.use("/uploads", express.static(path.join(__dirname, "uploads")));    
     app.use(express.urlencoded({ extended: false }));
     app.use(cookieParser());
-    //app.use(express.static(path.join(__dirname, "public")));
-
-    app.use("/", indexRouter);
+        
     app.use("/api/auth", authRouter);
     app.use("/api/users", usersRouter);
     app.use("/api/questions", questionsRouter);
